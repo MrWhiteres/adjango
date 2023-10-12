@@ -1,13 +1,30 @@
+from os import path
 from pathlib import Path
+
+import sentry_sdk
+
+import project.settings.env_data as environment
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = PROJECT_DIR.parent
 
-SECRET_KEY = 'django-insecure-so_(wbr7kbtutu8l69^bv!k7s$yot!!d*7@$m)aucepao$7pf&'
+SECRET_KEY = environment.SECRET_KEY
 
-DEBUG = True
+DEBUG = environment.DEBUG
 
-ALLOWED_HOSTS = []
+if environment.SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=environment.SENTRY_DSN,
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for performance monitoring.
+        traces_sample_rate=1.0,
+        # Set profiles_sample_rate to 1.0 to profile 100%
+        # of sampled transactions.
+        # We recommend adjusting this value in production.
+        profiles_sample_rate=1.0,
+    )
+
+ALLOWED_HOSTS = ['*']
 
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -18,7 +35,7 @@ DJANGO_APPS = [
     'django.contrib.staticfiles',
 ]
 
-PIP_ASGI_APPS = [
+ASGI_START_APPS = [
     'daphne'
 ]
 
@@ -34,7 +51,7 @@ PROJECT_APPS = [
     'project.apps.test_app'
 ]
 
-INSTALLED_APPS = PIP_ASGI_APPS + DJANGO_APPS + PIP_APPS + PROJECT_APPS
+INSTALLED_APPS = ASGI_START_APPS + DJANGO_APPS + PIP_APPS + PROJECT_APPS
 
 DJANGO_ALLOW_ASYNC_UNSAFE = True
 
@@ -86,10 +103,10 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
-STATIC_DIR = BASE_DIR / 'static'
+STATIC_ROOT = path.join(BASE_DIR, 'static')
 
 MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
